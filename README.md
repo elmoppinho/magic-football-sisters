@@ -3,6 +3,8 @@
 Fußball-Quiz als Jump'n'Run – läuft direkt im Browser, am PC und auf dem Smartphone (Querformat, bildschirmfüllend).
 Ein Ableger von *Magic Math Sisters*: gleiche Spielmechanik, aber Fußballfragen statt Mathematik.
 
+Online spielen: https://elmoppinho.github.io/magic-foorball-sisters/
+
 ## Dateien
 
 | Datei | Inhalt |
