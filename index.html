@@ -23,7 +23,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font-f
 *{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .touch{display:none}
 @media (pointer:coarse){.touch{display:block}#keys{display:none}}
-#pad{position:fixed;left:max(2px,env(safe-area-inset-left,0px));bottom:max(2px,env(safe-area-inset-bottom,0px));width:116px;height:116px;touch-action:none;z-index:4;opacity:.5}
+#pad{position:fixed;left:calc(env(safe-area-inset-left,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:116px;height:116px;touch-action:none;z-index:4;opacity:.5}
 #pad .arm{position:absolute;background:#ffffff22;border:2px solid #ffffffaa}
 #pad .h{left:0;right:0;top:38px;height:40px;border-radius:10px}
 #pad .v{top:0;bottom:0;left:38px;width:40px;border-radius:10px}
@@ -31,12 +31,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font-f
 #pad .tl{left:5px;top:51px;border-right-color:#fff}#pad .tr{right:5px;top:51px;border-left-color:#fff}
 #pad .tu{top:5px;left:51px;border-bottom-color:#fff}#pad .td{bottom:5px;left:51px;border-top-color:#fff}
 #pad.l .tl,#pad.r .tr,#pad.u .tu,#pad.d .td{filter:drop-shadow(0 0 6px var(--gold))}
-#ab{position:fixed;right:max(4px,env(safe-area-inset-right,0px));bottom:max(4px,env(safe-area-inset-bottom,0px));width:142px;height:100px;touch-action:none;z-index:4}
+#ab{position:fixed;right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);width:142px;height:100px;touch-action:none;z-index:4}
 .round{position:absolute;width:62px;height:62px;border-radius:50%;border:3px solid #ffffffbb;color:#fff;font-family:"Press Start 2P",monospace;font-size:13px;touch-action:none;opacity:.55}
 #bA{right:0;top:0;background:#e2463c55}#bB{left:0;top:38px;background:#f0b02055}
 .round.down,.pill.down{opacity:.95;transform:scale(.94)}
 #meta{position:fixed;bottom:max(4px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:4;touch-action:none}
-#swap{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + 108px);z-index:4;touch-action:none}
+#swap{position:fixed;right:calc(env(safe-area-inset-right,0px) + 32px);bottom:calc(env(safe-area-inset-bottom,0px) + 124px);z-index:4;touch-action:none}
 .pill{font-family:"Press Start 2P",monospace;font-size:8px;color:#fff;background:#0b0f2a66;border:2px solid #ffffff99;border-radius:12px;padding:8px 12px;touch-action:none;opacity:.75}
 #bStart{font-size:9px;padding:9px 18px}
 #toggles{position:fixed;bottom:max(6px,env(safe-area-inset-bottom,0px));right:max(8px,env(safe-area-inset-right,0px));z-index:6;display:flex;gap:6px}
