@@ -22,6 +22,18 @@ Geburtstagsfassung von *Magic Football Sisters* – ein Quiz-Jump'n'Run im Brows
 
 Fragen lassen sich direkt auf GitHub bearbeiten (Datei öffnen → Stift-Symbol → Commit changes).
 
+## Schwierigkeit
+
+Im Titelbild unter „SCHWIERIGKEIT“ (mit ◀ ▶ oder A umschalten):
+
+| Stufe | Fragekisten | Endgegner | Falsche Antwort |
+|---|---|---|---|
+| **Einfach** | richtig beantwortete Kisten bleiben grün – auch nach Game Over – und werden nicht nochmal gefragt | Fragen aus den bereits beantworteten Fragen der Welt | zweiter Versuch |
+| **Mittel** | nach jedem Game Over 15 neue Fragen | Fragen aus dem übrigen Katalog | zweiter Versuch |
+| **Schwer** | nach jedem Game Over 15 neue Fragen | Fragen aus dem übrigen Katalog | kein zweiter Versuch |
+
+Der zweite Versuch gilt auch im Robo-Bonus und im Finale. Ist eine Welt geschafft, beginnt sie im einfachen Modus beim nächsten Mal wieder frisch.
+
 ## Spielablauf
 
 * 15 Fragekisten pro Welt, nach jedem Game Over 15 neue Fragen.

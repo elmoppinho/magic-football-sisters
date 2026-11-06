@@ -8277,7 +8277,7 @@ function newSelection(w){const S=SAVES.FB||(SAVES.FB={cat:'FB',sel:{},seen:{},t:
   const pool=CAT.FB.worlds[w]||[],ids=pool.map(qid),want=Math.min(SELSIZE,ids.length);let seen=(S.seen[w]||[]).filter(i=>ids.includes(i));
   let open=ids.filter(i=>!seen.includes(i));if(open.length<want){seen=[];open=ids.slice()}
   const pick=shuffled(open.length).slice(0,want).map(k=>open[k]);S.sel[w]=pick;S.seen[w]=seen.concat(pick);storeSave();return pick}
-function reshuffleQuestions(){const S=SAVES.FB;if(!S)return;S.seen={};S.seenB={};for(let w=1;w<=3;w++)newSelection(w);storeSave()}
+function reshuffleQuestions(){const S=SAVES.FB;if(!S)return;S.seen={};S.seenB={};S.easy={};for(let w=1;w<=3;w++)newSelection(w);storeSave()}
 function resetSave(){UNL.mm=[0,0,0];UNL.perfect=[0,0,0];UNL.fin=0;saveUnl();const c=ACTIVE;if(c){for(let w=1;w<=3;w++)delete PROG[c+w];delete SAVES[c]}ACTIVE=null;storeSave();saveProg()}
 function activate(cat){G.cat=cat;ACTIVE=cat;if(!SAVES[cat])newSave(cat);storeSave();state='worlds';T=0;SFX.ok()}
 let PROG={};try{PROG=JSON.parse(localStorage.getItem('mbt_prog')||'{}');G.hi=+localStorage.getItem('mbt_hi')||0}catch(e){}
@@ -8340,7 +8340,8 @@ function hitBlock(c,r){const ch=tile(c,r);
   else if(ch==='M'){L.bumps.push({c,r,t:8});SFX.bump();kickTop(c,r);CUR.tiles[r][c]='X';
     const box=CUR.boxes.find(b=>b.c===c&&b.r===r),n=CUR.boxes.indexOf(box)+1;
     ask('FRAGEKISTE '+n+'/'+CUR.boxes.length+' · WELT '+L.def.id,ok=>{
-      CUR.tiles[r][c]=ok?'G':'R';if(box)box.res=ok;G.run.ls[G.lvl].res[c+','+r]=ok;burst(c*8+4,r*8+4,14,ok?['#5cf06a','#fff']:['#ff6a5a','#fff']);
+      CUR.tiles[r][c]=ok?'G':'R';if(box)box.res=ok;G.run.ls[G.lvl].res[c+','+r]=ok;
+      if(DIFF===0&&G.run.lastQ){const st=easyStore(G.world+1,true),id=qid(G.run.lastQ);if(!st.asked.includes(id))st.asked.push(id);if(ok&&!st.green.includes(id)){st.green.push(id);(st.res[G.lvl]=st.res[G.lvl]||{})[c+','+r]=true}storeSave()}burst(c*8+4,r*8+4,14,ok?['#5cf06a','#fff']:['#ff6a5a','#fff']);
       if(ok){G.run.correct++;score(1000,c*8-4,r*8-10);
         if(G.run.correct%3===0){CUR.items.push({type:'frog',x:c*8-1,y:r*8,w:10,h:9,vx:0,vy:0,emerge:18,hop:20});SFX.frog();msg('3 RICHTIG: FROSCH = 1UP!',120,'#7cf0a0')}
         else{const type=P.power===0?'potion':'flower';if(P.power===2)score(1000,c*8,r*8-20);else{CUR.items.push({type,x:c*8,y:r*8,w:8,h:8,vx:0,vy:0,emerge:16});SFX.appear()}}}
@@ -8360,6 +8361,11 @@ function shuffled(n){const o=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j
 /* Σ-Kisten: die gespeicherten 15 Fragen der Welt, in pro Versuch neu gemischter Reihenfolge.
    Endgegner: Fragen der Welt, die nicht zu diesen 15 gehören – innerhalb eines Versuchs ohne Wiederholung. */
 function nextQuestion(boss){const w=G.world+1,sel=selFor(w),all=CAT[G.cat].worlds[w]||[],R=G.run;
+  if(DIFF===0&&sel.length){const st=easyStore(w,true);
+    if(boss){let pool=sel.filter(q=>st.asked.includes(qid(q)));if(!pool.length)pool=sel;let open=pool.filter(q=>!R.bossAsked.includes(qid(q)));if(!open.length){R.bossAsked=[];open=pool}
+      const q=open[fl(Math.random()*open.length)];R.bossAsked.push(qid(q));return q}
+    let open=sel.filter(q=>!st.green.includes(qid(q))&&!R.used.includes(qid(q)));if(!open.length)open=sel.filter(q=>!st.green.includes(qid(q)));if(!open.length)open=sel;
+    const q=open[fl(Math.random()*open.length)];R.used.push(qid(q));R.lastQ=q;return q}
   const fallback=[...CAT[G.cat].worlds[1],...CAT[G.cat].worlds[2],...CAT[G.cat].worlds[3]];
   if(boss){const selIds=new Set(sel.map(qid));R.bossAsked=R.bossAsked||[];
     let rest=all.filter(q=>!selIds.has(qid(q)));if(!rest.length)rest=sel.length?sel:fallback;
@@ -8376,7 +8382,10 @@ function ask(title,done,boss,qq){quizOpen=true;quizDone=done;for(const k in held
   qEl.classList.add('open');const ver=++quizVersion;
   const render=(n=0)=>{if(ver!==quizVersion)return;if(window.MathJax&&MathJax.typesetPromise)typeset(qEl);else if(n<40&&!mjFailed)setTimeout(()=>render(n+1),200);else{mjFailed=true;plain(document.getElementById('question'));[...ansEl.children].forEach(plain)}};render();
   const f=ansEl.querySelector('button');f&&f.focus({preventScroll:true})}
-function answer(q,i){const btns=[...ansEl.children];if(btns[0].disabled)return;btns.forEach(b=>b.disabled=true);quizOk=i===q.ok;
+function answer(q,i){const btns=[...ansEl.children];if(q.done||btns[i].disabled)return;
+  if(i!==q.ok&&DIFF<2&&!q.tried){q.tried=true;btns[i].disabled=true;btns[i].classList.add('wrong');SFX.no();resEl.className='bad';resEl.innerHTML='<strong>LEIDER FALSCH – ZWEITER VERSUCH!</strong>Wähle noch eine andere Antwort.';
+    const f=btns.find(b=>!b.disabled);f&&f.focus({preventScroll:true});return}
+  q.done=true;btns.forEach(b=>b.disabled=true);quizOk=i===q.ok;
   btns[q.ok].classList.add('right');if(!quizOk)btns[i].classList.add('wrong');quizOk?SFX.ok():SFX.no();resEl.className=quizOk?'ok':'bad';
   resEl.innerHTML='<strong>'+(quizOk?'RICHTIG! ✓':'LEIDER FALSCH')+'</strong>'+(quizOk?'':'Richtig ist <b>'+'ABCD'[q.ok]+'</b>. ')+mdInline(q.why||'');
   typeset(resEl);nextBtn.className='show';nextBtn.focus({preventScroll:true});resEl.scrollIntoView({block:'nearest'})}
@@ -8587,13 +8596,19 @@ function updateFx(){for(const q of L.parts){q.x+=q.vx;q.y+=q.vy;q.vy+=q.grav;q.t
   if(L.msg&&--L.msg.d<=0)L.msg=null;if(L.shake>0)L.shake--}
 function pauseAct(i){SFX.menu();if(i===0){paused=false;duck(false)}else if(i===1)setMusic(!AU.music);else if(i===2)setSfx(!AU.sfx);else if(i===3)toggleFS();else{paused=false;duck(false);saveHi();state='worlds';T=0;MUS.name=null;playSong('swan')}}
 function modeList(){const w=G.world,p=prog(G.cat,w+1),n=Math.max(1,Math.ceil(selFor(w+1).length/5));
-  const M=[{t:'SPIELEN',sub:'JUMP AND RUN',lines:['3 LEVEL + BOSS','15 NEUE FRAGEN','ALLE GRÜN = ROBO'],best:'✓ BESTE: '+p.green+'/15',go:()=>startWorld(w)},
+  const M=[{t:'SPIELEN',sub:'JUMP AND RUN',lines:['3 LEVEL + BOSS',DIFF===0?'GRÜN BLEIBT GRÜN':'15 NEUE FRAGEN','ALLE GRÜN = ROBO'],best:'✓ BESTE: '+p.green+'/15',go:()=>startWorld(w)},
     {t:'NUR FRAGEN',sub:'LERNPFAD',lines:[n+' LEKTIONEN','+ ABSCHLUSSTEST','FEHLER WIEDERHOLEN'],best:'★ '+(lessonStars(p,n)+(p.lstars||0))+'/'+(n*3+3),go:()=>startLearn()}];
   if(UNL.mm[w])M.push({t:'ROBO',sub:'ROBO-BONUS '+(w+1),lines:['3 STAGES + BOSS','STEIN = FRAGE','3 RICHTIG = ENERGIE'],best:UNL.perfect[w]?'✓ PERFEKT':'ZIEL: ALLE RICHTIG',go:()=>mmStart(w)});
   else M.push({t:'ROBO',sub:'GESPERRT',lines:['ALLE 15 KISTEN','DIESER WELT GRÜN','= FREIGESCHALTET'],best:'GESPERRT',go:()=>{SFX.no()}});
   if(finaleOpen())M.push({t:'FINALE',sub:'WELTRAUM-SHOOTER',lines:['LIGA · TOUR · WM','KAPSEL = FRAGE','RICHTIG = POWER-UP'],best:UNL.fin?'★ GESCHAFFT':'',go:()=>shStart()});
   return M}
-function startWorld(w){newSelection(w+1);G.world=w;G.lvl=0;G.lives=5;G.score=0;G.run={ls:[],correct:0,wrong:0,qi:0,order:null,bossAsked:[],allGreen:false};P=null;state='intro';T=0;SFX.ok();stopSong()}
+let DIFF=(()=>{try{const v=localStorage.getItem('mbt_diff');return v===null?1:+v}catch(e){return 1}})();const DNAME=['EINFACH','MITTEL','SCHWER'];
+function setDiff(v){DIFF=(v+3)%3;try{localStorage.setItem('mbt_diff',DIFF)}catch(e){}}
+function easyStore(w,create){const S=SAVES.FB;if(!S)return null;S.easy=S.easy||{};if(!S.easy[w]&&create)S.easy[w]={sel:(S.sel[w]||[]).slice(),green:[],asked:[],res:[{},{},{}]};return S.easy[w]||null}
+function easyClear(w){const S=SAVES.FB;if(S&&S.easy){delete S.easy[w];storeSave()}}
+function startWorld(w){let st=DIFF===0?easyStore(w+1):null;if(st&&st.sel.length)SAVES.FB.sel[w+1]=st.sel.slice();else{newSelection(w+1);if(DIFF===0)st=easyStore(w+1,true)}
+  G.world=w;G.lvl=0;G.lives=5;G.score=0;G.run={ls:[],correct:0,wrong:0,qi:0,order:null,bossAsked:[],used:[],lastQ:null,allGreen:false};
+  if(DIFF===0&&st){st.res.forEach((r,i)=>{G.run.ls[i]={res:{...r},check:false}});storeSave()}P=null;state='intro';T=0;SFX.ok();stopSong()}
 function nextAfterLevel(){saveHi();if(L.def.bonus){const p=prog(G.cat,G.world+1);p.bonus=true;p.best=Math.max(p.best,G.score);saveProg();state='bonusclear';T=0;playSong('swan');return}G.lvl++;state='intro';T=0}
 
 function step(){
@@ -8604,8 +8619,9 @@ function step(){
   case'title':T++;if(confirmReset){if(tap.up||tap.left){resetSel=(resetSel+2)%3;SFX.menu()}if(tap.down||tap.right){resetSel=(resetSel+1)%3;SFX.menu()}
       if(tap.a||tap.start){if(resetSel===0){reshuffleQuestions();menuMsg='FRAGEN NEU GEMISCHT – FORTSCHRITT BLEIBT ERHALTEN';SFX.ok()}else if(resetSel===1){resetSave();titleSel=0;menuMsg='ALLES ZURÜCKGESETZT';SFX.ok()}else SFX.menu();
         if(resetSel<2)menuMsgT=200;confirmReset=false}else if(tap.b||tap.back||tap.select){confirmReset=false;SFX.menu()}break}
-    if(tap.left||tap.right){G.hero=1-G.hero;SFX.swap()}if(SAVES.FB&&(tap.up||tap.down)){titleSel=1-titleSel;SFX.menu()}
-    if(tap.start||tap.a){if(SAVES.FB&&titleSel===1){confirmReset=true;resetSel=0;SFX.menu()}else activate('FB')}break;
+    {const n=SAVES.FB?3:2;if(titleSel>=n)titleSel=0;if(tap.up){titleSel=(titleSel+n-1)%n;SFX.menu()}if(tap.down){titleSel=(titleSel+1)%n;SFX.menu()}
+    if(tap.left||tap.right){if(titleSel===1){setDiff(DIFF+(tap.right?1:-1));SFX.menu()}else{G.hero=1-G.hero;SFX.swap()}}
+    if(tap.start&&titleSel!==2)activate('FB');else if(tap.a){if(titleSel===0)activate('FB');else if(titleSel===1){setDiff(DIFF+1);SFX.menu()}else{confirmReset=true;resetSel=0;SFX.menu()}}}break;
   case'catalog':T++;if(tap.left||tap.right||tap.up||tap.down){G.cat=G.cat==='ODE'?'PDE':'ODE';SFX.menu()}if(tap.select){mdTarget=G.cat;mdFile.click()}
     if(tap.start||tap.a)chooseCatalog(G.cat);if(tap.back||tap.b){state='title';T=0}break;
   case'worlds':T++;if(tap.left||tap.up){G.world=(G.world+2)%3;SFX.menu()}if(tap.right||tap.down){G.world=(G.world+1)%3;SFX.menu()}
@@ -8622,7 +8638,7 @@ function step(){
     if(T>60&&t.phase===0){if(L.time>0){const d=Math.min(3,L.time);L.time-=d;G.score+=d*10;t.timeBonus+=d*10;if(T%3===0)SFX.blip()}else{t.phase=1;t.wait=T}}
     else if(t.phase===1&&T-t.wait>130){t.phase=2;nextAfterLevel()}break}
   case'worldclear':T++;updateFx();if(T===130&&G.run.allGreen)SFX.perfect();
-    if(T>170&&(tap.a||tap.start)){if(G.run.allGreen){UNL.mm[G.world]=1;saveUnl();mmStart(G.world)}else{state='worlds';T=0;MUS.name=null;playSong('swan')}}break;
+    if(T>170&&(tap.a||tap.start)){easyClear(G.world+1);if(G.run.allGreen){UNL.mm[G.world]=1;saveUnl();mmStart(G.world)}else{state='worlds';T=0;MUS.name=null;playSong('swan')}}break;
   case'bonusclear':T++;if(T>90&&(tap.a||tap.start)){state='worlds';T=0}break;
   case'over':T++;if(T>240||(T>60&&(tap.start||tap.a))){state='worlds';T=0;MUS.name=null;playSong('swan')}break;
   }
@@ -8707,10 +8723,9 @@ function render(){g.setTransform(1,0,0,1,0,0);HITS=[];
     for(const hi of [0,1]){const x=DW/2+(hi?26:-50),sel=G.hero===hi,pose=sel&&fl(T/10)%2?'a':'stand';g.drawImage(hi?HERO[hi][1][pose].l:HERO[hi][1][pose].r,x,180);
       textC(hi?'JOSEBA':'LANCE',168,sel?'#ffd23a':'#ffffff',1,x+12);HITS.push({x:x-10,y:160,w:44,h:64,f:()=>{if(G.hero!==hi){G.hero=hi;SFX.swap()}else tap.start=true}})}
     textC(G.hero?'BERGTRIKOT · SPRINGT HÖHER · GOLDENER SCHUH: FLIEGEN':'GELBES TRIKOT · LÄUFT SCHNELLER · GOLDENER SCHUH: SCHUSS',114,'#ffffff');textC('ALLES GUTE ZUM GEBURTSTAG, TONI!',DH-22,fl(T/20)%2?'#ffd23a':'#ff8ad8');for(let k=0;k<26;k++){const cx=(k*97+T*(.6+k%3*.3))%DW,cy=(k*53+T*(1+k%4*.4))%DH;R(g,cx,cy,3,3,['#ff5a5a','#ffd23a','#5cf06a','#4fb8f8','#ff8ad8'][k%5])}
-    if(!SAVES.FB){if(fl(T/28)%2===0)textC('START DRÜCKEN',142,'#ffd23a',2)}
-    else{const opts=['ANSTOSS','SPIELSTAND ZURÜCKSETZEN'],w=Math.max(...opts.map(o=>tw(o)))+24;
-      opts.forEach((o,i)=>{const y=128+i*15,sel=titleSel===i;R(g,DW/2-w/2,y-4,w,14,sel?'#ffd23a':'#0b0f2acc');R(g,DW/2-w/2+2,y-2,w-4,10,sel?'#3a2400':'#18205a');textC(o,y,sel?'#ffd23a':(i===1?'#ffb0a0':'#ffffff'));
-      HITS.push({x:DW/2-w/2,y:y-4,w,h:14,f:()=>{titleSel=i;tap.a=true}})})}
+    {const opts=['ANSTOSS','◀ SCHWIERIGKEIT: '+DNAME[DIFF]+' ▶'].concat(SAVES.FB?['SPIELSTAND ZURÜCKSETZEN']:[]),w=Math.max(...opts.map(o=>tw(o)))+24;
+      opts.forEach((o,i)=>{const y=124+i*13,sel=titleSel===i;R(g,DW/2-w/2,y-4,w,14,sel?'#ffd23a':'#0b0f2acc');R(g,DW/2-w/2+2,y-2,w-4,10,sel?'#3a2400':'#18205a');textC(o,y,sel?'#ffd23a':(i===2?'#ffb0a0':i===1?['#7cf0a0','#ffe060','#ff9a8a'][DIFF]:'#ffffff'));
+      HITS.push({x:DW/2-w/2,y:y-4,w,h:12,f:()=>{titleSel=i;tap.a=true}})})}
     text('TOP '+zp(G.hi,7),8,6,'#ffffff');
     if(menuMsgT>0&&!confirmReset)textC(menuMsg,DH-30,'#7cf0a0');
     if(confirmReset){HITS=[];g.fillStyle='#0b0f2acc';g.fillRect(0,0,DW,DH);drawPanel(DW/2-170,54,340,176);textC('SPIELSTAND ZURÜCKSETZEN',68,'#ffd23a',2);
@@ -8726,7 +8741,7 @@ function render(){g.setTransform(1,0,0,1,0,0);HITS=[];
       for(let w=1;w<=3;w++){const n=C.worlds[w].length;textC('WELT '+w+': '+(n>SELSIZE?SELSIZE+' AUS '+n:n)+' FRAGEN',116+w*12,'#ffffff',1,x+cw/2)}textC(SAVES[id]?'SPIELSTAND VORHANDEN':(C.src.startsWith('DATEI')?C.src:''),176,SAVES[id]?'#7cf0a0':'#8a94c8',1,x+cw/2)});
     textC('◀ ▶ WÄHLEN · A: KATALOG ÜBERNEHMEN (ZUFALLSAUSWAHL WIRD GESPEICHERT)',204,'#ffffff');HITS.push({x:DW/2-100,y:214,w:200,h:16,f:()=>{mdTarget=G.cat;mdFile.click()}});
     textC(menuMsgT?menuMsg:'WECHSEL-TASTE: EIGENE .MD-DATEI LADEN',218,menuMsgT?'#7cf0a0':'#8a94c8');return}
-  if(state==='worlds'){menuBack(['grass','desert','sky'][G.world]);textC('WETTBEWERB WÄHLEN',14,'#ffd23a',2);const cw=Math.min(150,(DW-50)/3),gap=12,x0=DW/2-(cw*3+gap*2)/2;
+  if(state==='worlds'){menuBack(['grass','desert','sky'][G.world]);textC('WETTBEWERB WÄHLEN',14,'#ffd23a',2);textC('SCHWIERIGKEIT: '+DNAME[DIFF]+(DIFF<2?' · ZWEITER VERSUCH BEI FALSCHER ANTWORT':''),34,['#7cf0a0','#ffe060','#ff9a8a'][DIFF]);const cw=Math.min(150,(DW-50)/3),gap=12,x0=DW/2-(cw*3+gap*2)/2;
     WORLDS.forEach((W,i)=>{const x=x0+i*(cw+gap),sel=G.world===i,p=prog(G.cat,i+1),tot=BOXCOUNT[i].reduce((a,b)=>a+b,0);card(x,40,cw,170,sel,()=>{if(G.world===i){state='mode';T=0;SFX.menu()}else{G.world=i;SFX.menu()}});
       textC('WELT '+(i+1),52,sel?'#ffd23a':'#ffffff',2,x+cw/2);textC(W.name,74,'#ffffff',1,x+cw/2);textC(W.sub,88,'#c4b8ff',1,x+cw/2);
       [0,1,2].forEach(k=>textC((i+1)+'-'+(k+1)+' '+(k===2?'★':''),104+k*12,'#ffffff',1,x+cw/2));
