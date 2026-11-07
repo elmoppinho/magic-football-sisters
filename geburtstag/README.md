@@ -22,6 +22,20 @@ Geburtstagsfassung von *Magic Football Sisters* – ein Quiz-Jump'n'Run im Brows
 
 Fragen lassen sich direkt auf GitHub bearbeiten (Datei öffnen → Stift-Symbol → Commit changes).
 
+### Spezialwaffen im Robo-Bonus
+
+Wie bei Mega Man überlässt jeder besiegte Robo-Meister seine Waffe – sie bleibt für alle Robo-Spiele erhalten:
+
+| Besiegt | Waffe | Wirkung | Schwachstelle von |
+|---|---|---|---|
+| Torwart-Robo | Fallrückzieher | Ball im hohen Bogen | Schiri-Robo |
+| Schiri-Robo | Pfiff-Welle | Schallwelle, geht durch Gegner | Pokal-Robo |
+| Pokal-Robo | Pokal-Komet | drei goldene Kugeln im Fächer | Torwart-Robo |
+
+* **WECHSEL-Taste** (E) schaltet die Waffe um, ein zweiter Balken zeigt ihre Energie; sie füllt sich zu jeder Stage wieder auf.
+* Ein Treffer mit der passenden Waffe zieht dem Robo-Meister viermal so viel Energie ab.
+* **Energy Container**: im Pausenmenü (START) mit A benutzen.
+
 ## Schwierigkeit
 
 Im Titelbild unter „SCHWIERIGKEIT“ (mit ◀ ▶ oder A umschalten):
