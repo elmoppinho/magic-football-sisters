@@ -36,9 +36,23 @@ Spielmechanik wie Mega Man auf dem Game Boy, Optik im Stil von Mega Man X – He
 
 * B schießt (bis zu drei Schüsse), B halten = Ladeschuss, A springt (kurz drücken = kleiner Sprung).
 * **Blinkende Steine** zerschießen → Frage aus `fragen/robo.md` (Welt 1 Bundesliga, Welt 2 Europapokal/EM, Welt 3 WM).
-* Je **drei richtige Antworten** in Folge gibt es einen **Energy Container**; mit der SCHWESTER-Taste (E) füllt er die Energie wieder auf.
+* Je **drei richtige Antworten** in Folge gibt es einen **Energy Container**; im Pausenmenü (START) füllt er mit A die Energie wieder auf.
 * Am Ende jeder Stage wartet ein Robo-Meister mit eigenem Energiebalken.
 * Freigeschaltete Robo-Spiele sind jederzeit über die Welt-Auswahl (Karte „ROBO“) erreichbar.
+
+### Spezialwaffen im Robo-Bonus
+
+Wie bei Mega Man überlässt jeder besiegte Robo-Meister seine Waffe – sie bleibt für alle Robo-Spiele erhalten:
+
+| Besiegt | Waffe | Wirkung | Schwachstelle von |
+|---|---|---|---|
+| Torwart-Robo | Fallrückzieher | Ball im hohen Bogen | Schiri-Robo |
+| Schiri-Robo | Pfiff-Welle | Schallwelle, geht durch Gegner | Pokal-Robo |
+| Pokal-Robo | Pokal-Komet | drei goldene Kugeln im Fächer | Torwart-Robo |
+
+* **SCHWESTER-Taste** (E) schaltet die Waffe um, ein zweiter Balken zeigt ihre Energie; sie füllt sich zu jeder Stage wieder auf.
+* Ein Treffer mit der passenden Waffe zieht dem Robo-Meister viermal so viel Energie ab.
+* **Energy Container**: im Pausenmenü (START) mit A benutzen.
 
 ## Finale (3 Level)
 
