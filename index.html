@@ -9550,7 +9550,10 @@ function mmStep(){const p=MM.p,L=MM.L;MM.T++;tick++;
   if(MM.refill>0){if(MM.T%3===0){p.hp++;MM.refill--;SFX.blip()}return}
   /* Spieler */
   if(p.knock>0){p.knock--}else{const ax=(held.right?1:0)-(held.left?1:0);p.vx=ax*2.1;if(ax)p.face=ax}
-  if(tap.a&&p.ground){p.vy=-6.6;SFX.jump()}if(!held.a&&p.vy<-2.2)p.vy=-2.2;p.vy=Math.min(7,p.vy+.33);mmMove(p,p.vx,p.vy);
+  /* Sprung: Nachfrist an Kanten (Coyote-Time), vorgemerkter Sprung, Mindesthöhe auch bei kurzem Tippen */
+  if(p.ground)p.coy=7;else if(p.coy>0)p.coy--;if(tap.a)p.buf=8;else if(p.buf>0)p.buf--;
+  if(p.buf>0&&(p.ground||p.coy>0)&&p.vy>=-0.5){p.vy=-6.6;p.buf=0;p.coy=0;p.jt=0;SFX.jump()}
+  p.jt=(p.jt||0)+1;if(!held.a&&p.vy<-3.6&&p.jt>7)p.vy=-3.6;p.vy=Math.min(7,p.vy+.33);mmMove(p,p.vx,p.vy);
   if(p.x<MM.cam+8)p.x=MM.cam+8;
   if(tap.b){if(MM.wsel===0){if(MM.shots.filter(s=>!s.big&&!s.kind).length<3){MM.shots.push({x:p.x+p.face*16,y:p.y+15,vx:p.face*7,w:8,h:6,big:false});p.shootT=14;SFX.fire()}}
     else{const k=MM.wsel-1;if(MM.wen[k]>=WCOST[k]&&MM.shots.filter(s=>s.kind).length<3){MM.wen[k]-=WCOST[k];p.shootT=14;
